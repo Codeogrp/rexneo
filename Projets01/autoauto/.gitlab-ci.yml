@@ -1,0 +1,41 @@
+
+stages:
+  - deploy-dev
+
+
+# deploy-dev:
+#   stage: deploy-dev
+#   only:
+#     refs:
+#       - develop
+#   image: google/cloud-sdk
+#   services:
+#     - docker:dind
+#   script:
+#     - echo $GCP_SERVICE_KEY_DEV > gcloud-service-key.json # Google Cloud service accounts
+#     - gcloud auth activate-service-account --key-file gcloud-service-key.json
+#     - gcloud config set project $GCP_PROJECT_ID_DEV
+#     - gcloud builds submit . --config=cloudbuild-dev.yaml
+#   interruptible: true
+#   environment:
+#     name: develop/$CI_COMMIT_REF_NAME
+#     action: stop
+  
+heroku:
+  stage: deploy-dev
+  only:
+    refs:
+      - develop
+  image: ruby:latest
+  services:
+    - docker:dind
+  before_script:
+    - gem install dpl
+  script:
+    - dpl --provider=heroku --app=$HEROKU_API_NAME --api-key=$HEROKU_API_KEY
+  interruptible: true
+  environment:
+    name: heroku/$CI_COMMIT_REF_NAME
+    url: $HEROKU_API_HOST
+    action: stop
+  

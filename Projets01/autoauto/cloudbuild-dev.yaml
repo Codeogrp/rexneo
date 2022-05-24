@@ -1,0 +1,52 @@
+# File: cloudbuild.yaml 
+steps:
+    # build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/$PROJECT_ID/projectbj/${_IMAGE_NAME}', '.' ]
+    
+    # push the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'europe-west1-docker.pkg.dev/$PROJECT_ID/projectbj/${_IMAGE_NAME}']
+
+  # - name: "gcr.io/google-appengine/exec-wrapper"
+  #   entrypoint: 'bash'
+  #   args: ["-c",
+  #       "/buildstep/execute.sh -i europe-west1-docker.pkg.dev/$PROJECT_ID/projectbj/${_IMAGE_NAME} -s $$CONNECTION_NAME -e DB_HOST=$$DB_HOST -e DB_CONNECTION=pgsql -e DB_USERNAME=$$DB_USER -e DB_DATABASE=$$DB_NAME -e DB_PASSWORD=$$DB_PASSWORD -e APP_KEY=$$APP_KEY -e FEDAPAY_SECRET_KEY=$$FEDAPAY_SECRET_KEY -e FEDAPAY_ENVIRONMENT=$$FEDAPAY_ENVIRONMENT -e DB_PORT=5432 -e PORT=8080 -e MAIL_USERNAME=$$MAIL_USERNAME -e MAIL_FROM_ADDRESS=$$MAIL_USERNAME -e MAIL_PASSWORD=$$MAIL_PASSWORD -- php artisan migrate:fresh --seed --yes"]
+  #   secretEnv: ['DB_NAME', 'DB_PASSWORD', 'DB_USER', 'DB_HOST', 'CONNECTION_NAME', 'MAIL_PASSWORD', 'APP_KEY', 'FEDAPAY_SECRET_KEY', 'FEDAPAY_ENVIRONMENT', 'MAIL_USERNAME']
+
+  - name: "gcr.io/google-appengine/exec-wrapper"
+    entrypoint: 'bash'
+    args: ["-c",
+        "/buildstep/execute.sh -i europe-west1-docker.pkg.dev/$PROJECT_ID/projectbj/${_IMAGE_NAME} -s $$CONNECTION_NAME -e DB_HOST=$$DB_HOST -e DB_CONNECTION=pgsql -e DB_USERNAME=$$DB_USER -e DB_DATABASE=$$DB_NAME -e DB_PASSWORD=$$DB_PASSWORD -e APP_KEY=$$APP_KEY -e FEDAPAY_SECRET_KEY=$$FEDAPAY_SECRET_KEY -e FEDAPAY_ENVIRONMENT=$$FEDAPAY_ENVIRONMENT -e DB_PORT=5432 -e PORT=8080 -e MAIL_USERNAME=$$MAIL_USERNAME -e MAIL_FROM_ADDRESS=$$MAIL_USERNAME -e MAIL_PASSWORD=$$MAIL_PASSWORD -- php artisan migrate --force"]
+    secretEnv: ['DB_NAME', 'DB_PASSWORD', 'DB_USER', 'DB_HOST', 'CONNECTION_NAME', 'MAIL_PASSWORD', 'APP_KEY', 'FEDAPAY_SECRET_KEY', 'FEDAPAY_ENVIRONMENT', 'MAIL_USERNAME']
+
+  #   # deploy to Cloud Run
+  # - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  #   args: ['gcloud', 'run', 'services', 'update', 'api-candidat', '--image', 'europe-west6-docker.pkg.dev/$PROJECT_ID/projectbj/${_IMAGE_NAME}:latest', '--region', 'europe-west1', '--platform', 'managed', '--port', '8080']
+
+substitutions:
+  _IMAGE_NAME: "auto-church"
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/db_auto_auto_church/versions/latest
+    env: 'DB_NAME'
+  - versionName: projects/$PROJECT_ID/secrets/db_user/versions/latest
+    env: 'DB_USER'
+  - versionName: projects/$PROJECT_ID/secrets/db_host/versions/latest
+    env: 'DB_HOST'
+  - versionName: projects/$PROJECT_ID/secrets/db_password/versions/latest
+    env: 'DB_PASSWORD'
+  - versionName: projects/$PROJECT_ID/secrets/connexion_name/versions/latest
+    env: 'CONNECTION_NAME'
+  - versionName: projects/$PROJECT_ID/secrets/MAIL_PASSWORD/versions/latest
+    env: 'MAIL_PASSWORD'
+  - versionName: projects/$PROJECT_ID/secrets/FEDAPAY_ENVIRONMENT/versions/latest
+    env: 'FEDAPAY_ENVIRONMENT'
+  - versionName: projects/$PROJECT_ID/secrets/FEDAPAY_SECRET_KEY/versions/latest
+    env: 'FEDAPAY_SECRET_KEY'
+  - versionName: projects/$PROJECT_ID/secrets/APP_KEY/versions/latest
+    env: 'APP_KEY'
+  - versionName: projects/$PROJECT_ID/secrets/MAIL_USERNAME/versions/latest
+    env: 'MAIL_USERNAME'
+
